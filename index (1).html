@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SoulEcho</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0a0a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SoulEcho">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-logo">Soul<span>Echo</span></div>
+  <p class="login-sub">找到與你共鳴的靈魂</p>
+  <div id="login-content"><div class="loader"></div></div>
+</div>
+
+<canvas id="space-canvas"></canvas>
+
+<div id="hud-top">
+  <div id="cosmos-mood"></div>
+  <div id="hud-coins">🪙 <span id="hud-coin-val">0</span></div>
+</div>
+
+<div id="room-label"></div>
+
+<div id="hud-bottom">
+  <button class="hud-btn" onclick="openPanel('bubble-sheet')">💭</button>
+  <button class="hud-btn" onclick="openPanel('room-select')">🌌</button>
+  <button class="hud-btn" onclick="openPanel('broadcast-panel')">📡</button>
+  <button class="hud-btn" onclick="nav('help')">🆘</button>
+  <button class="hud-btn" onclick="nav('friends')">👥<span class="hud-badge" id="friends-badge" style="display:none;"></span></button>
+  <button class="hud-btn" onclick="nav('me')">👤</button>
+</div>
+
+<div id="room-select" class="overlay-panel" style="display:none;">
+  <div class="panel-hdr">🌌 選擇星域 <span class="panel-x" onclick="closePanel('room-select')">✕</span></div>
+  <div class="room-lobby-btn" onclick="joinRoom('lobby')">
+    <div class="room-icon">✦</div>
+    <div style="flex:1;"><div class="room-name">大廳</div><div class="room-sub">自由漂浮，隨緣相遇</div></div>
+    <div class="room-count" id="lobby-count">0</div>
+  </div>
+  <div style="font-size:11px;color:#555;padding:14px 0 8px;letter-spacing:1px;text-transform:uppercase;">情緒星域</div>
+  <div class="room-grid" id="room-grid"></div>
+</div>
+
+<div id="broadcast-panel" class="overlay-panel" style="display:none;">
+  <div class="panel-hdr">📡 宇宙廣播 <span class="panel-x" onclick="closePanel('broadcast-panel')">✕</span></div>
+  <p style="font-size:13px;color:#666;margin-bottom:14px;line-height:1.6;">你的話會像流星劃過所有人的畫面</p>
+  <textarea id="broadcast-inp" maxlength="40" placeholder="說一句話給宇宙..."></textarea>
+  <button class="primary-btn" onclick="sendBroadcast()">發送 ✦</button>
+</div>
+
+<div id="bubble-sheet" class="overlay-panel" style="display:none;">
+  <div class="panel-hdr">💭 編輯對話雲 <span class="panel-x" onclick="closePanel('bubble-sheet')">✕</span></div>
+  <div class="sheet-sec">
+    <div class="sheet-lbl">情緒標籤（星球顏色）</div>
+    <div class="emo-row" id="emo-row"></div>
+  </div>
+  <div class="sheet-sec">
+    <div class="sheet-lbl">說些什麼</div>
+    <textarea class="bubble-ta" id="bubble-ta" placeholder="說些什麼讓附近的靈魂認識你..." maxlength="60"></textarea>
+    <div class="char-ct" id="char-ct">0 / 60</div>
+  </div>
+  <div class="sheet-sec">
+    <div class="sheet-lbl">🎵 正在聽的歌</div>
+    <input class="music-search-inp" id="yt-inp" placeholder="搜尋歌曲..." oninput="onMusicSearch(this.value)">
+    <div class="music-results" id="yt-results"></div>
+    <div id="selected-music" style="display:none;margin-top:8px;"></div>
+  </div>
+  <button class="save-sheet-btn" onclick="saveBubble()">✦ 更新對話雲</button>
+</div>
+
+<div id="star-popup" style="display:none;">
+  <button class="star-popup-close" onclick="closeStarPopup()">✕</button>
+  <div id="star-popup-av"></div>
+  <div id="star-popup-name"></div>
+  <div id="star-popup-emotion"></div>
+  <div id="star-popup-bubble"></div>
+  <div id="star-popup-music"></div>
+  <div class="star-popup-btns">
+    <button class="spbtn chat" id="sp-chat-btn">💬 聊天</button>
+    <button class="spbtn add" id="sp-add-btn">➕ 好友</button>
+    <button class="spbtn light" id="sp-light-btn">✨ 送光</button>
+  </div>
+</div>
+
+<div id="view-help" class="view" style="display:none;">
+  <div class="view-hdr">
+    <button class="back-btn" onclick="nav('space')">← 返回</button>
+    <h2>🆘 互助廣場</h2>
+  </div>
+  <div class="help-compose">
+    <textarea id="help-input" placeholder="你需要什麼幫助？說說看..."></textarea>
+    <button class="help-post-btn" onclick="postHelpRequest()">📢 發布求助</button>
+  </div>
+  <div class="section-hdr">求助列表</div>
+  <div id="help-list"></div>
+</div>
+
+<div id="view-friends" class="view" style="display:none;">
+  <div class="view-hdr">
+    <button class="back-btn" onclick="nav('space')">← 返回</button>
+    <h2>👥 好友</h2>
+  </div>
+  <div class="ftabs">
+    <div class="ftab active" id="ftab-friends" onclick="switchFTab('friends')">我的好友</div>
+    <div class="ftab" id="req-tab" onclick="switchFTab('requests')">申請請求</div>
+  </div>
+  <div class="invite-banner">
+    <p>邀請朋友 ✦<br><small>朋友完成第一次幫助 → 你獲得 🪙 100</small></p>
+    <button class="invite-btn" onclick="copyInviteLink()">📋 複製連結</button>
+  </div>
+  <div id="friends-content"></div>
+</div>
+
+<div id="view-me" class="view" style="display:none;">
+  <div class="view-hdr">
+    <button class="back-btn" onclick="nav('space')">← 返回</button>
+    <h2>👤 我的靈魂</h2>
+  </div>
+  <div class="me-body">
+    <div class="me-avatar-wrap" id="me-avatar"></div>
+    <input class="me-name-inp" id="me-name" type="text" maxlength="12" placeholder="你的名字" onchange="updateProfile('name',this.value)">
+    <div class="ig-row">
+      <span>@</span>
+      <input class="ig-inp" id="ig-handle" type="text" placeholder="Instagram（選填）" maxlength="30" onchange="updateProfile('igHandle',this.value)">
+    </div>
+    <div class="me-stats">
+      <div class="stat"><span class="stat-n" id="s-helped">0</span><span class="stat-l">幫助次數</span></div>
+      <div class="stat"><span class="stat-n" id="s-recv">0</span><span class="stat-l">獲得幫助</span></div>
+      <div class="stat"><span class="stat-n" id="s-friends">0</span><span class="stat-l">好友數</span></div>
+      <div class="stat"><span class="stat-n" id="s-coins">0</span><span class="stat-l">🪙 代幣</span></div>
+    </div>
+    <div class="me-title-badge" id="me-title">新手靈魂</div>
+    <div class="me-sec">
+      <div class="me-sec-title">目前狀態</div>
+      <div class="status-pills" id="status-pills"></div>
+    </div>
+    <button class="soul-card-btn" onclick="openSoulCard()">✦ 產生靈魂卡片</button>
+    <div class="shop-section">
+      <div class="me-sec-title">外框光效</div>
+      <div class="shop-grid" id="shop-glow-grid"></div>
+      <div class="me-sec-title" style="margin-top:16px;">頭飾</div>
+      <div class="shop-grid" id="shop-deco-grid"></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">登出</button>
+  </div>
+</div>
+
+<div id="chat-panel">
+  <div class="chat-hdr">
+    <div id="chat-av" style="width:40px;height:40px;flex-shrink:0;"></div>
+    <div style="flex:1;min-width:0;">
+      <div id="chat-name" style="font-weight:900;font-size:15px;"></div>
+      <div id="typing-indicator">正在打字...</div>
+    </div>
+    <div id="chat-fr-btn"></div>
+    <span class="chat-x" onclick="closeChat()">✕</span>
+  </div>
+  <div id="chat-msgs"></div>
+  <div class="chat-inp-row">
+    <input id="chat-inp" type="text" placeholder="輸入訊息..." onkeydown="if(event.key==='Enter')sendMsg()" oninput="onTyping()">
+    <button class="send-btn" onclick="sendMsg()">↑</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div id="toast-av" style="width:40px;height:40px;flex-shrink:0;"></div>
+  <div class="toast-info"><div class="toast-title" id="toast-title"></div><div class="toast-sub" id="toast-sub"></div></div>
+  <div class="toast-btns" id="toast-btns"></div>
+</div>
+
+<div id="meteor-container"></div>
+
+<div id="reward-modal">
+  <div class="reward-box">
+    <div style="font-size:52px;margin-bottom:12px;">🤝</div>
+    <div style="font-size:20px;font-weight:900;margin-bottom:8px;">幫助完成！</div>
+    <div style="font-size:13px;color:#888;margin-bottom:24px;line-height:1.6;">給幫助你的靈魂送上代幣<br>（你有 🪙 <span id="my-coin-display">0</span>）</div>
+    <div class="coin-slider-row">
+      <span style="font-size:20px;">🪙</span>
+      <input type="range" class="coin-slider" id="coin-slider" min="1" max="20" value="10">
+      <span class="coin-val" id="coin-val">10</span>
+    </div>
+    <button class="reward-btn" onclick="confirmReward()">送出 🪙 <span id="reward-btn-val">10</span></button>
+    <button onclick="closeRewardModal()" style="width:100%;margin-top:10px;padding:12px;background:none;border:none;color:#888;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;">跳過</button>
+  </div>
+</div>
+
+<div id="card-modal">
+  <canvas id="soul-canvas" width="390" height="693"></canvas>
+  <div class="card-actions">
+    <button class="card-btn dl" onclick="downloadCard()">⬇ 儲存</button>
+    <button class="card-btn ig" onclick="shareToIG()">📸 分享到 IG</button>
+    <button class="card-btn cl" onclick="document.getElementById('card-modal').classList.remove('open')">關閉</button>
+  </div>
+</div>
+
+<div id="install-banner">
+  <div class="install-txt"><strong>加入主畫面</strong><span>像 App 一樣使用</span></div>
+  <button class="install-btn" onclick="installPWA()">加入</button>
+  <button class="install-dismiss" onclick="dismissInstall()">✕</button>
+</div>
+
+<script defer src="/app.js"></script>
+</body>
+</html>
