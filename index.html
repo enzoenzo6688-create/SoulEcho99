@@ -34,14 +34,16 @@
 <div id="room-label"></div>
 
 <div id="hud-bottom">
-  <button class="hud-btn" onclick="openPanel('bubble-sheet')">💭</button>
-  <button class="hud-btn" onclick="openPanel('room-select')">🌌</button>
-  <button class="hud-btn" onclick="openPanel('broadcast-panel')">📡</button>
-  <button class="hud-btn" onclick="nav('help')">🆘</button>
-  <button class="hud-btn" onclick="nav('friends')">👥<span class="hud-badge" id="friends-badge" style="display:none;"></span></button>
-  <button class="hud-btn" onclick="nav('me')">👤</button>
+  <button class="hud-btn" onclick="openBubbleSheet()" title="對話雲">💭</button>
+  <button class="hud-btn" onclick="openRoomSelect()" title="進入星域">🌌</button>
+  <button class="hud-btn" onclick="openPanel('broadcast-panel')" title="宇宙廣播">📡</button>
+  <button class="hud-btn" onclick="findSoulMatch()" title="靈魂配對">🎲</button>
+  <button class="hud-btn" onclick="nav('help')" title="互助廣場">🆘</button>
+  <button class="hud-btn" onclick="nav('friends')" title="好友" style="position:relative;">👥<span class="hud-badge" id="friends-badge" style="display:none;"></span></button>
+  <button class="hud-btn" onclick="nav('me')" title="我的靈魂">👤</button>
 </div>
 
+<!-- ROOM SELECT -->
 <div id="room-select" class="overlay-panel" style="display:none;">
   <div class="panel-hdr">🌌 選擇星域 <span class="panel-x" onclick="closePanel('room-select')">✕</span></div>
   <div class="room-lobby-btn" onclick="joinRoom('lobby')">
@@ -49,21 +51,25 @@
     <div style="flex:1;"><div class="room-name">大廳</div><div class="room-sub">自由漂浮，隨緣相遇</div></div>
     <div class="room-count" id="lobby-count">0</div>
   </div>
-  <div style="font-size:11px;color:#555;padding:14px 0 8px;letter-spacing:1px;text-transform:uppercase;">情緒星域</div>
+  <div style="font-size:11px;color:#555;padding:14px 16px 6px;letter-spacing:1px;text-transform:uppercase;">情緒星域</div>
   <div class="room-grid" id="room-grid"></div>
 </div>
 
+<!-- BROADCAST -->
 <div id="broadcast-panel" class="overlay-panel" style="display:none;">
   <div class="panel-hdr">📡 宇宙廣播 <span class="panel-x" onclick="closePanel('broadcast-panel')">✕</span></div>
-  <p style="font-size:13px;color:#666;margin-bottom:14px;line-height:1.6;">你的話會像流星劃過所有人的畫面</p>
-  <textarea id="broadcast-inp" maxlength="40" placeholder="說一句話給宇宙..."></textarea>
-  <button class="primary-btn" onclick="sendBroadcast()">發送 ✦</button>
+  <p style="font-size:13px;color:#666;margin:0 20px 14px;line-height:1.6;">你的話會像流星劃過所有人的螢幕</p>
+  <div style="padding:0 20px;">
+    <textarea id="broadcast-inp" maxlength="40" placeholder="說一句話給宇宙..."></textarea>
+    <button class="primary-btn" onclick="sendBroadcast()">發送 ✦</button>
+  </div>
 </div>
 
+<!-- BUBBLE SHEET -->
 <div id="bubble-sheet" class="overlay-panel" style="display:none;">
   <div class="panel-hdr">💭 編輯對話雲 <span class="panel-x" onclick="closePanel('bubble-sheet')">✕</span></div>
   <div class="sheet-sec">
-    <div class="sheet-lbl">情緒標籤（星球顏色）</div>
+    <div class="sheet-lbl">情緒標籤（決定你的星球顏色）</div>
     <div class="emo-row" id="emo-row"></div>
   </div>
   <div class="sheet-sec">
@@ -80,25 +86,27 @@
   <button class="save-sheet-btn" onclick="saveBubble()">✦ 更新對話雲</button>
 </div>
 
+<!-- STAR POPUP -->
 <div id="star-popup" style="display:none;">
   <button class="star-popup-close" onclick="closeStarPopup()">✕</button>
   <div id="star-popup-av"></div>
-  <div id="star-popup-name"></div>
-  <div id="star-popup-emotion"></div>
-  <div id="star-popup-bubble"></div>
-  <div id="star-popup-music"></div>
+  <div id="star-popup-name" style="font-weight:900;font-size:17px;margin-top:8px;"></div>
+  <div id="star-popup-emotion" style="margin-top:6px;"></div>
+  <div id="star-popup-bubble" style="font-size:12px;color:#888;margin-top:6px;max-width:240px;margin-left:auto;margin-right:auto;line-height:1.5;"></div>
+  <div id="star-popup-music" style="margin-top:8px;"></div>
+  <!-- Emoji reactions -->
+  <div id="star-popup-reactions" style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:12px 0 8px;"></div>
   <div class="star-popup-btns">
     <button class="spbtn chat" id="sp-chat-btn">💬 聊天</button>
     <button class="spbtn add" id="sp-add-btn">➕ 好友</button>
     <button class="spbtn light" id="sp-light-btn">✨ 送光</button>
+    <button class="spbtn wall" id="sp-wall-btn">💌 留言</button>
   </div>
 </div>
 
+<!-- VIEWS -->
 <div id="view-help" class="view" style="display:none;">
-  <div class="view-hdr">
-    <button class="back-btn" onclick="nav('space')">← 返回</button>
-    <h2>🆘 互助廣場</h2>
-  </div>
+  <div class="view-hdr"><button class="back-btn" onclick="nav('space')">← 返回</button><h2>🆘 互助廣場</h2></div>
   <div class="help-compose">
     <textarea id="help-input" placeholder="你需要什麼幫助？說說看..."></textarea>
     <button class="help-post-btn" onclick="postHelpRequest()">📢 發布求助</button>
@@ -108,26 +116,20 @@
 </div>
 
 <div id="view-friends" class="view" style="display:none;">
-  <div class="view-hdr">
-    <button class="back-btn" onclick="nav('space')">← 返回</button>
-    <h2>👥 好友</h2>
-  </div>
+  <div class="view-hdr"><button class="back-btn" onclick="nav('space')">← 返回</button><h2>👥 好友</h2></div>
   <div class="ftabs">
     <div class="ftab active" id="ftab-friends" onclick="switchFTab('friends')">我的好友</div>
     <div class="ftab" id="req-tab" onclick="switchFTab('requests')">申請請求</div>
   </div>
   <div class="invite-banner">
-    <p>邀請朋友 ✦<br><small>朋友完成第一次幫助 → 你獲得 🪙 100</small></p>
+    <p>邀請朋友加入 ✦<br><small>朋友完成第一次幫助 → 你獲得 🪙 100</small></p>
     <button class="invite-btn" onclick="copyInviteLink()">📋 複製連結</button>
   </div>
   <div id="friends-content"></div>
 </div>
 
 <div id="view-me" class="view" style="display:none;">
-  <div class="view-hdr">
-    <button class="back-btn" onclick="nav('space')">← 返回</button>
-    <h2>👤 我的靈魂</h2>
-  </div>
+  <div class="view-hdr"><button class="back-btn" onclick="nav('space')">← 返回</button><h2>👤 我的靈魂</h2></div>
   <div class="me-body">
     <div class="me-avatar-wrap" id="me-avatar"></div>
     <input class="me-name-inp" id="me-name" type="text" maxlength="12" placeholder="你的名字" onchange="updateProfile('name',this.value)">
@@ -157,6 +159,7 @@
   </div>
 </div>
 
+<!-- CHAT -->
 <div id="chat-panel">
   <div class="chat-hdr">
     <div id="chat-av" style="width:40px;height:40px;flex-shrink:0;"></div>
@@ -174,6 +177,7 @@
   </div>
 </div>
 
+<!-- TOAST -->
 <div class="toast" id="toast">
   <div id="toast-av" style="width:40px;height:40px;flex-shrink:0;"></div>
   <div class="toast-info"><div class="toast-title" id="toast-title"></div><div class="toast-sub" id="toast-sub"></div></div>
@@ -182,6 +186,7 @@
 
 <div id="meteor-container"></div>
 
+<!-- REWARD -->
 <div id="reward-modal">
   <div class="reward-box">
     <div style="font-size:52px;margin-bottom:12px;">🤝</div>
@@ -197,6 +202,7 @@
   </div>
 </div>
 
+<!-- SOUL CARD -->
 <div id="card-modal">
   <canvas id="soul-canvas" width="390" height="693"></canvas>
   <div class="card-actions">
@@ -206,6 +212,7 @@
   </div>
 </div>
 
+<!-- INSTALL BANNER -->
 <div id="install-banner">
   <div class="install-txt"><strong>加入主畫面</strong><span>像 App 一樣使用</span></div>
   <button class="install-btn" onclick="installPWA()">加入</button>
