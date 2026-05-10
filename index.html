@@ -21,65 +21,42 @@
 
 <canvas id="star-canvas"></canvas>
 
-<!-- ── ENTRY SCREEN (第一個畫面) ── -->
-<div id="entry-screen">
-  <div id="entry-top">
-    <div class="logo">SOUL ECHO</div>
-    <div id="entry-tagline">你現在怎麼了？</div>
+<!-- TOP -->
+<div id="top-bar">
+  <div class="logo">SOUL ECHO</div>
+  <div id="online-count">
+    <div class="live-dot"></div>
+    <span id="online-num">0</span> 個靈魂在這裡
   </div>
-
-  <!-- 情緒選句氣泡 -->
-  <div id="prompt-bubbles">
-    <button class="prompt-bubble" onclick="selectPrompt(this)">有點累，說不出原因</button>
-    <button class="prompt-bubble" onclick="selectPrompt(this)">腦袋停不下來</button>
-    <button class="prompt-bubble" onclick="selectPrompt(this)">想說話，但不知道找誰</button>
-    <button class="prompt-bubble" onclick="selectPrompt(this)">其實還好，只是想待一下</button>
-  </div>
-
-  <!-- 自由輸入入口 -->
-  <div id="entry-or">或者用自己的話說</div>
-  <div id="entry-input-wrap">
-    <textarea id="entry-ta" placeholder="說出來就好，不需要解釋" maxlength="120" rows="2"></textarea>
-    <button id="entry-release" onclick="releaseFromEntry()">放開 ↗</button>
-  </div>
-
-  <!-- 靜待提示（10秒後出現） -->
-  <div id="idle-hint">不想說也沒關係，你在這裡就好。</div>
 </div>
 
-<!-- ── MAIN FEED (放出碎片後進入) ── -->
-<div id="main-screen" style="display:none;">
+<!-- PROMPT HINT -->
+<div id="prompt-hint">說出來就好，不需要解釋</div>
 
-  <div id="top-bar">
-    <div class="logo">SOUL ECHO</div>
-    <div id="online-count">
-      <div class="live-dot"></div>
-      <span id="online-num">0</span> 個靈魂在這裡
+<!-- FEED -->
+<div id="feed"></div>
+
+<!-- INPUT AREA -->
+<div id="input-wrap">
+  <!-- 快速選句 -->
+  <div id="quick-prompts">
+    <button class="qp" onclick="usePrompt(this)">有點累，說不出原因</button>
+    <button class="qp" onclick="usePrompt(this)">腦袋停不下來</button>
+    <button class="qp" onclick="usePrompt(this)">想說話，但不知道找誰</button>
+    <button class="qp" onclick="usePrompt(this)">其實還好，只是想待一下</button>
+  </div>
+  <div id="input-box">
+    <textarea id="input-ta" placeholder="或者用自己的話說..." maxlength="120" rows="2"></textarea>
+    <div id="input-footer">
+      <span id="char-count"></span>
+      <button id="release-btn">放開 ↗</button>
     </div>
   </div>
-
-  <div id="feed"></div>
-
-  <div id="empty-state">
-    <div class="empty-line1">宇宙很安靜</div>
-    <div class="empty-line2">但你不是一個人</div>
-  </div>
-
-  <!-- 底部輸入 -->
-  <div id="input-wrap">
-    <div id="input-box">
-      <div id="input-ph">你現在的感覺是什麼</div>
-      <textarea id="input-ta" maxlength="120" rows="2"></textarea>
-      <div id="input-footer">
-        <span id="char-count">0 / 120</span>
-        <button id="release-btn">放開 ↗</button>
-      </div>
-    </div>
-  </div>
-  <div id="bottom-note">沒有帳號，沒有名字，只有此刻</div>
 </div>
 
-<!-- ── ANON CHAT ── -->
+<div id="bottom-note">沒有帳號，沒有名字，只有此刻</div>
+
+<!-- ANON CHAT -->
 <div id="chat-overlay" class="hidden">
   <div id="chat-box">
     <div id="chat-top">
@@ -97,7 +74,7 @@
   </div>
 </div>
 
-<!-- ── SHARE CARD ── -->
+<!-- SHARE CARD -->
 <div id="share-overlay" class="hidden">
   <div id="share-box">
     <canvas id="share-canvas" width="390" height="560"></canvas>
@@ -109,7 +86,6 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
 <script defer src="/app.js"></script>
