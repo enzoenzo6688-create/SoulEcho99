@@ -100,7 +100,8 @@ async function updateOnlineCount() {
 
 async function ensureSeeds() {
   try {
-    const snap = await db.collection('fragments').limit(1).get();
+    const since = new Date(Date.now()-2*60*60*1000);
+    const snap = await db.collection('fragments').where('ts','>',since).limit(1).get();
     if (!snap.empty) return;
     const now = Date.now();
     for (let i=0; i<SEEDS.length; i++) {
