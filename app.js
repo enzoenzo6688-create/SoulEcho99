@@ -100,9 +100,8 @@ async function updateOnlineCount() {
 
 async function ensureSeeds() {
   try {
-    const since = new Date(Date.now()-2*60*60*1000);
-    const snap = await db.collection('fragments').where('ts','>',since).limit(1).get();
-    if (!snap.empty) return;
+    const snap = await db.collection('fragments').limit(3).get();
+    if (snap.size >= 3) return;
     const now = Date.now();
     for (let i=0; i<SEEDS.length; i++) {
       await db.collection('fragments').add({
@@ -119,10 +118,9 @@ async function ensureSeeds() {
 
 // ── FEED ──
 function listenFragments() {
-  const since = new Date(Date.now()-2*60*60*1000);
+  // Simple query - no composite index needed
   db.collection('fragments')
-    .where('ts','>',since)
-    .orderBy('ts','desc')
+    .limit(30)
     .onSnapshot(snap => {
       snap.docChanges().forEach(ch => {
         if (ch.type==='added') {
