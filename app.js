@@ -101,8 +101,10 @@ async function updateOnlineCount() {
 
 async function ensureSeeds() {
   try {
-    const snap = await db.collection('fragments').where('isSeed','==',true).limit(1).get();
-    if (snap.size >= 3) return;
+    console.log('ensureSeeds called');
+    const snap = await db.collection('fragments').limit(1).get();
+    console.log('existing fragments:', snap.size);
+    if (!snap.empty) return;
     const now = Date.now();
     for (let i=0; i<SEEDS.length; i++) {
       await db.collection('fragments').add({
@@ -169,6 +171,9 @@ function renderFrag(f) {
     </div>`;
 
   feed.insertBefore(el, feed.firstChild);
+  // Force visible immediately
+  el.style.opacity = '1';
+  el.style.transform = 'translateY(0)';
   setTimeout(()=>{ el.style.animation='breathe 7s ease-in-out infinite'; }, 700);
 }
 
