@@ -133,6 +133,9 @@ function listenFragments() {
           if (el) { el.style.transition='all 0.5s'; el.style.opacity='0'; setTimeout(()=>el.remove(),500); }
         }
       });
+      // scroll to top to show latest
+      const feed = document.getElementById('feed');
+      if (feed) feed.scrollTop = 0;
     });
 }
 
