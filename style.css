@@ -73,10 +73,6 @@ html, body {
   transition: border-color 0.3s, opacity 0.5s;
 }
 .fragment:hover { border-color: var(--border-hi); }
-@keyframes floatUp {
-  from { opacity:0; transform:translateY(16px); }
-  to   { opacity:1; transform:translateY(0); }
-}
 @keyframes breathe {
   0%,100%{ transform:scale(1); }
   50%    { transform:scale(1.007); }
