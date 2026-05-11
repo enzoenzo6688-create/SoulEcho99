@@ -52,7 +52,7 @@ html, body {
 /* FEED */
 #feed {
   position: fixed;
-  top: 74px; bottom: 220px;
+  top: 74px; bottom: 175px;
   left: 0; right: 0;
   overflow-y: auto; overflow-x: hidden;
   padding: 6px 16px 8px;
