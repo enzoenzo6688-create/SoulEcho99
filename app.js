@@ -292,8 +292,7 @@ async function joinRoom(roomId){
   otherUsers={};
   document.getElementById('room-label').textContent = roomId==='lobby'?'✦ 大廳':(getEmo(roomId)?.n||roomId)+' 星域';
   closePanel('room-panel');
-  const since=new Date(Date.now()-5*60*1000);
-  usersUnsub=db.collection('users').where('room','==',roomId).where('lastSeen','>',since).onSnapshot(snap=>{
+  usersUnsub=db.collection('users').where('room','==',roomId).onSnapshot(snap=>{
     snap.docChanges().forEach(ch=>{
       const uid=ch.doc.id;if(uid===myUid)return;
       if(ch.type==='removed'){delete otherUsers[uid];return;}
@@ -328,14 +327,12 @@ function renderRoomGrid(){
 async function listenOnline(){
   setInterval(async()=>{
     try{
-      const since=new Date(Date.now()-5*60*1000);
-      const s=await db.collection('users').where('lastSeen','>',since).get();
+      const s=await db.collection('users').get();
       document.getElementById('onnum').textContent=Math.max(s.size,1);
     }catch(e){}
   },30000);
   try{
-    const since=new Date(Date.now()-5*60*1000);
-    const s=await db.collection('users').where('lastSeen','>',since).get();
+    const s=await db.collection('users').get();
     document.getElementById('onnum').textContent=Math.max(s.size,1);
   }catch(e){}
 }
