@@ -280,14 +280,14 @@ async function loadMyData(){
 }
 async function saveMyData(upd){
   myData={...myData,...upd};
-  await db.collection('users').doc(myUid).update({...upd,lastSeen:firebase.firestore.FieldValue.serverTimestamp()});
+  await db.collection('users').doc(myUid).set({...upd,lastSeen:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
 }
 
 // ── ROOM ──
 async function joinRoom(roomId){
   currentRoom=roomId;
   if(usersUnsub)usersUnsub();
-  await db.collection('users').doc(myUid).update({room:roomId,lastSeen:firebase.firestore.FieldValue.serverTimestamp(),bubble:myData.bubble,emotion:myData.emotion,name:myData.name,musicName:myData.musicName||''});
+  await db.collection('users').doc(myUid).set({room:roomId,lastSeen:firebase.firestore.FieldValue.serverTimestamp(),bubble:myData.bubble||'',emotion:myData.emotion||'',name:myData.name||'靈魂',musicName:myData.musicName||'',uid:myUid},{merge:true});
   myX=W/2+(Math.random()-.5)*120;myY=H/2+(Math.random()-.5)*120;
   otherUsers={};
   document.getElementById('room-label').textContent = roomId==='lobby'?'✦ 大廳':(getEmo(roomId)?.n||roomId)+' 星域';
