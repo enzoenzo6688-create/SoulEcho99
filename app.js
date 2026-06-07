@@ -297,7 +297,15 @@ async function joinRoom(roomId){
       const uid=ch.doc.id;if(uid===myUid)return;
       if(ch.type==='removed'){delete otherUsers[uid];return;}
       const data=ch.doc.data();
-      if(!otherUsers[uid])otherUsers[uid]={data,x:W*.1+Math.random()*W*.8,y:70+Math.random()*(H-160),vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,phase:Math.random()*Math.PI*2,lightTimer:0};
+      if(!otherUsers[uid]){
+        // Spread users across center 60% of screen
+        const margin=Math.min(W,H)*.15;
+        otherUsers[uid]={data,
+          x:margin+Math.random()*(W-margin*2),
+          y:100+Math.random()*(H-220),
+          vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,
+          phase:Math.random()*Math.PI*2,lightTimer:0};
+      }
       else otherUsers[uid].data=data;
     });
     updateRoomCounts();
