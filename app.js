@@ -105,25 +105,13 @@ function initBgStars(){
 // ── GAME LOOP ──
 function gameLoop(){
   requestAnimationFrame(gameLoop);
-  update();
-  render();
+  updateStars();
+  renderStars();
+  updateGrid();
 }
-function update(){
-  if(targetX!==null){
-    const dx=targetX-myX,dy=targetY-myY,dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<4){targetX=null;targetY=null;myVx*=.8;myVy*=.8;}
-    else{const sp=Math.min(4,dist*.08);myVx=(dx/dist)*sp;myVy=(dy/dist)*sp;}
-  }else{myVx*=.88;myVy*=.88;}
-  myX=Math.max(30,Math.min(W-30,myX+myVx));
-  myY=Math.max(70,Math.min(H-80,myY+myVy));
-  for(const u of Object.values(otherUsers)){
-    if(!u.vx){u.vx=(Math.random()-.5)*.35;u.vy=(Math.random()-.5)*.35;}
-    u.vx+=(Math.random()-.5)*.04;u.vy+=(Math.random()-.5)*.04;
-    u.vx=Math.max(-.7,Math.min(.7,u.vx));u.vy=Math.max(-.7,Math.min(.7,u.vy));
-    u.x=Math.max(30,Math.min(W-30,u.x+u.vx));u.y=Math.max(70,Math.min(H-80,u.y+u.vy));
-    u.phase=(u.phase||0)+.04;
-    if(u.lightTimer>0)u.lightTimer-=.02;
-  }
+function updateStars(){
+  // star phase for cell animation
+  for(const u of Object.values(otherUsers)){u.phase=(u.phase||0)+.04;}
   sparks=sparks.filter(s=>{s.x+=s.vx;s.y+=s.vy;s.vy+=.07;s.life-=.04;return s.life>0;});
   lightWaves=lightWaves.filter(w=>{w.r+=4;w.life-=.03;return w.life>0;});
   bgStars.forEach(s=>{
@@ -132,7 +120,7 @@ function update(){
   });
 }
 
-function render(){
+function renderStars(){
   ctx.fillStyle='#0a0a1a';ctx.fillRect(0,0,W,H);
   // Nebula
   const t=Date.now()/9000;
@@ -160,16 +148,7 @@ function render(){
     ctx.beginPath();ctx.arc(s.x,s.y,s.r*s.life,0,Math.PI*2);
     ctx.fillStyle=`rgba(255,200,80,${s.life})`;ctx.fill();
   });
-  // Constellation lines
-  const all=[...Object.values(otherUsers).map(u=>({x:u.x,y:u.y})),{x:myX,y:myY}];
-  for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){
-    const dx=all[i].x-all[j].x,dy=all[i].y-all[j].y,d=Math.sqrt(dx*dx+dy*dy);
-    if(d<160){ctx.beginPath();ctx.moveTo(all[i].x,all[i].y);ctx.lineTo(all[j].x,all[j].y);ctx.strokeStyle=`rgba(168,180,255,${.12*(1-d/160)})`;ctx.lineWidth=1;ctx.stroke();}
-  }
-  // Other users
-  for(const u of Object.values(otherUsers))drawStar(u.x,u.y,u.data,false,u.phase,u.lightTimer>0);
-  // Me
-  drawStar(myX,myY,myData,true,Date.now()/500,false);
+  // Grid handles user display
 }
 
 function drawStar(x,y,d,isMe,phase,isLit){
@@ -212,6 +191,42 @@ function drawStar(x,y,d,isMe,phase,isLit){
   ctx.restore();
 }
 function rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+
+// ── GRID ──
+function updateGrid(){
+  let grid=document.getElementById('user-grid');
+  if(!grid){
+    grid=document.createElement('div');
+    grid.id='user-grid';
+    document.getElementById('grid-space').appendChild(grid);
+  }
+  const allUsers=[{uid:'me',data:myData,isMe:true,phase:Date.now()/500},...Object.entries(otherUsers).map(([uid,u])=>({uid,data:u.data,isMe:false,phase:u.phase||0}))];
+  // Only re-render if changed
+  if(grid._count===allUsers.length&&grid._tick&&Date.now()-grid._tick<500)return;
+  grid._count=allUsers.length;grid._tick=Date.now();
+  grid.innerHTML='';
+  allUsers.forEach(({uid,data,isMe,phase})=>{
+    const emo=getEmo(data.emotion);
+    const col=emo?emo.c:'#00e5ff';
+    const size=18+2*Math.sin(phase);
+    const cell=document.createElement('div');
+    cell.className='home-cell'+(isMe?' me':'');
+    const bubbleHtml=data.bubble?`<div class="cell-bubble">${data.bubble.slice(0,18)}</div><div class="cell-tail"></div>`:'';
+    const musicHtml=data.musicName?`<div class="cell-music">🎵 ${data.musicName.slice(0,14)}</div>`:'';
+    const emoHtml=emo?`<div style="font-size:9px;color:${emo.c};letter-spacing:.5px;">${emo.n}</div>`:'';
+    cell.innerHTML=`
+      ${bubbleHtml}
+      <div class="cell-star" style="width:${size}px;height:${size}px;background:${col};box-shadow:0 0 ${isMe?20:14}px ${col}88;"></div>
+      <div class="cell-name">${isMe?'你':(data.name||'靈魂')}</div>
+      ${emoHtml}${musicHtml}`;
+    if(!isMe){
+      cell.onclick=()=>showSpop(uid,otherUsers[uid]||{data});
+    } else {
+      cell.onclick=()=>openPanel('bubble-panel');
+    }
+    grid.appendChild(cell);
+  });
+}
 
 // ── CLICK ──
 function onCanvasClick(e){
@@ -298,11 +313,15 @@ async function joinRoom(roomId){
       if(ch.type==='removed'){delete otherUsers[uid];return;}
       const data=ch.doc.data();
       if(!otherUsers[uid]){
-        // Spread users across center 60% of screen
-        const margin=Math.min(W,H)*.15;
-        otherUsers[uid]={data,
-          x:margin+Math.random()*(W-margin*2),
-          y:100+Math.random()*(H-220),
+        // Assign home zone based on uid hash
+        let hash=0; for(const c of uid) hash=(hash*31+c.charCodeAt(0))&0xfffff;
+        const cols=4, rows=3;
+        const col=hash%cols, row=Math.floor(hash/cols)%rows;
+        const zw=W/cols, zh=(H-160)/rows;
+        const hx=col*zw+zw*.2+Math.random()*zw*.6;
+        const hy=80+row*zh+zh*.2+Math.random()*zh*.6;
+        otherUsers[uid]={data,x:hx,y:hy,
+          homeX:hx,homeY:hy,
           vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,
           phase:Math.random()*Math.PI*2,lightTimer:0};
       }
